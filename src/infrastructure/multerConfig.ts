@@ -41,3 +41,14 @@ export const upload = multer({
     cb(null, true);
   },
 });
+
+export const memoryUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: config.upload.maxSizeMb * 1024 * 1024 },
+  fileFilter: (_req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+    if (!allowedMimeTypes.includes(file.mimetype)) {
+      return cb(new Error('Only image files (JPG, PNG, GIF, WEBP, SVG) are allowed'));
+    }
+    cb(null, true);
+  },
+});

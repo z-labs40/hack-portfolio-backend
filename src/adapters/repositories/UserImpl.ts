@@ -17,6 +17,10 @@ export class UserImpl implements IUserRepository {
     return this.repository.findOne({ where: { id } });
   }
 
+  async findAll(): Promise<User[]> {
+    return this.repository.find();
+  }
+
   async create(user: Partial<User>): Promise<User> {
     const newUser = this.repository.create(user);
     return this.repository.save(newUser);
@@ -24,5 +28,9 @@ export class UserImpl implements IUserRepository {
 
   async update(id: string, data: Partial<User>): Promise<void> {
     await this.repository.update(id, data);
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.repository.delete(id);
   }
 }

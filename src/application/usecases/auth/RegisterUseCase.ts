@@ -17,7 +17,7 @@ export class RegisterUseCase {
       throw new ConflictError('A user with this email already exists');
     }
 
-    // Hash password manually (no @BeforeInsert in partial create)
+    // Hash password manually (matching Dig-notice method)
     const hashedPassword = await bcrypt.hash(password, 12);
 
     const user = await this.userRepository.create({

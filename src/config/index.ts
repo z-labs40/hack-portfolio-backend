@@ -25,6 +25,11 @@ export interface AppConfig {
     maxSizeMb: number;
     uploadDir: string;
   };
+  supabase: {
+    url: string;
+    serviceRoleKey: string;
+    bucket: string;
+  };
 }
 
 export class Config {
@@ -37,6 +42,9 @@ export class Config {
       { key: 'DB_USER', value: config.db.user },
       { key: 'DB_PASSWORD', value: config.db.password },
       { key: 'DB_NAME', value: config.db.name },
+      { key: 'SUPABASE_URL', value: config.supabase.url },
+      { key: 'SUPABASE_SERVICE_ROLE_KEY', value: config.supabase.serviceRoleKey },
+      { key: 'SUPABASE_BUCKET', value: config.supabase.bucket },
     ];
 
     const missing = requiredVars
