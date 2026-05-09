@@ -47,14 +47,18 @@ app.use(
     credentials: true,
     origin: (origin, callback) => {
       if (!origin) return callback(null, true);
+      
+      const normalizedOrigin = origin.replace(/\/$/, '');
       const allowedOrigins = [
-        config.frontendUrl,
+        config.frontendUrl.replace(/\/$/, ''),
+        'https://hackathon-portfolio-webapp.web.app',
         'http://localhost:5173',
         'http://localhost:3000',
         'http://127.0.0.1:5173',
         'http://127.0.0.1:3000',
       ];
-      if (allowedOrigins.includes(origin)) {
+      
+      if (allowedOrigins.includes(normalizedOrigin)) {
         callback(null, true);
       } else {
         callback(null, false);
@@ -67,7 +71,7 @@ app.use(
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
-app.use(morgan('dev'));
+app.use(morgan(config.env === 'production' ? 'combined' : 'dev'));
 app.use(loggerMiddleware);
 
 // Serve uploaded files statically
