@@ -5,7 +5,13 @@ import { ProjectContent } from '../../../shared/types';
 export class CreateProjectUseCase {
   constructor(private projectRepository: IProjectRepository) {}
 
-  async execute(ownerId: string, slug: string, projectName: string, content: ProjectContent) {
+  async execute(
+    ownerId: string,
+    slug: string,
+    projectName: string,
+    content: ProjectContent,
+    options?: { status?: 'in-progress' | 'submitted' | 'winner'; published?: boolean; tagline?: string }
+  ) {
     if (!slug || !projectName) {
       throw new BadRequestError('Slug and project name are required');
     }
@@ -18,8 +24,9 @@ export class CreateProjectUseCase {
     const data: CreateProjectData = {
       slug,
       projectName,
-      tagline: content.story?.description?.substring(0, 100) || '',
-      status: 'in-progress',
+      tagline: options?.tagline ?? (content.story?.description?.substring(0, 100) || ''),
+      status: options?.status ?? 'in-progress',
+      published: options?.published ?? (options?.status === 'submitted' || options?.status === 'winner'),
       content,
       ownerId,
     };

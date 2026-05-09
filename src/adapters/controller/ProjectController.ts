@@ -41,9 +41,13 @@ export class ProjectController {
 
   async createProjectHandler(req: any, res: Response, next: any) {
     try {
-      const { slug, projectName, content } = req.body;
+      const { slug, projectName, content, status, published, tagline } = req.body;
       const usecase = new CreateProjectUseCase(this.projectRepository);
-      const result = await usecase.execute(req.user.id, slug, projectName, content);
+      const result = await usecase.execute(req.user.id, slug, projectName, content, {
+        status,
+        published,
+        tagline,
+      });
 
       res.status(201).json({
         ok: true,

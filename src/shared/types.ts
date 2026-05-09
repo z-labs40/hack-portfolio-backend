@@ -1,14 +1,24 @@
 // Shared types — data contract between frontend and backend (mirrors src/types/project.ts)
 
 export type ProjectStatus = 'in-progress' | 'submitted' | 'winner';
-export type ProjectTheme = 'dark-hacker' | 'clean-minimal' | 'bold-colorful';
+export type ProjectTheme =
+  | 'dark-modern'
+  | 'light-minimal'
+  | 'gradient-creative'
+  | 'glassmorphism'
+  | 'portfolio-luxury'
+  | 'dark-hacker'
+  | 'clean-minimal'
+  | 'bold-colorful';
 export type ProjectBackground = 'none' | 'mesh' | 'aurora' | 'grid' | 'dots' | 'orbs';
 export type ProjectCategory = 'AI/ML' | 'Web3' | 'HealthTech' | 'EdTech' | 'FinTech' | 'Sustainability' | 'Other';
-export type ElementType = 'text' | 'button' | 'image' | 'social-github' | 'social-youtube';
-export type ElementVariant =
-  | 'heading1' | 'heading2' | 'paragraph'
-  | 'primary-btn' | 'pill-btn' | 'ghost-btn'
-  | 'button' | 'link' | 'icon' | 'video';
+export type ThemeId = ProjectTheme;
+export type SectionKind = 'hero' | 'about' | 'projects' | 'skills' | 'contact';
+export type BgType = 'solid' | 'gradient' | 'image';
+export type BtnStyle = 'solid' | 'outline' | 'glass' | 'neon' | 'rounded';
+export type ImageLayout = 'grid' | 'masonry' | 'carousel';
+export type ImageEffect = 'zoom' | 'blur' | 'overlay';
+export type ElementType = 'title' | 'subtitle' | 'body' | 'cta' | 'image' | 'github' | 'youtube';
 
 export interface TeamMember {
   id: string;
@@ -23,21 +33,44 @@ export interface ProjectElement {
   id: string;
   type: ElementType;
   content: string;
-  variant: ElementVariant;
+  variant?: string;
   style?: Record<string, string | number>;
-  x?: number;
-  y?: number;
+  x: number;
+  y: number;
 }
 
 export interface ProjectSection {
   id: string;
-  title: string;
-  height?: number;
+  kind: SectionKind;
+  height: number;
+  themeOverride: ThemeId | 'inherit';
+  text: {
+    family: string;
+    size: number;
+    weight: number;
+    letterSpacing: number;
+    lineHeight: number;
+    align: 'left' | 'center' | 'right';
+    color: string;
+  };
+  button: {
+    style: BtnStyle;
+    size: 'sm' | 'md' | 'lg';
+    radius: number;
+    color: string;
+  };
   background: {
-    type: 'color' | 'image';
+    type: BgType;
     value: string;
+    overlay: boolean;
+    overlayColor: string;
     opacity?: number;
     blur?: number;
+  };
+  gallery: {
+    layout: ImageLayout;
+    effect: ImageEffect;
+    images: string[];
   };
   elements: ProjectElement[];
 }

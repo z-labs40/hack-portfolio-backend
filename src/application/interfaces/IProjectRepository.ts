@@ -6,6 +6,7 @@ export interface CreateProjectData {
   projectName: string;
   tagline?: string;
   status?: ProjectStatus;
+  published?: boolean;
   content: ProjectContent;
   ownerId: string;
 }
