@@ -7,20 +7,34 @@ const host = process.env.SMTP_HOST || 'smtp.gmail.com';
 const port = parseInt(process.env.SMTP_PORT || '587');
 
 const transporter = nodemailer.createTransport({
+  pool: true, // Use connection pooling
+  maxConnections: 5,
+  maxMessages: 100,
   service: host.includes('gmail') ? 'gmail' : undefined,
   host: !host.includes('gmail') ? host : undefined,
   port: port,
   secure: port === 465,
-  connectionTimeout: 10000, // 10 seconds timeout
-  greetingTimeout: 10000,
-  socketTimeout: 10000,
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
+  tls: {
+    rejectUnauthorized: false // Helps in some environments to avoid handshake delays
+  }
+});
+
+
+// Verify connection configuration
+transporter.verify((error) => {
+  if (error) {
+    Logger.error('SMTP Connection Error:', error);
+  } else {
+    Logger.info('SMTP Server is ready to take our messages');
+  }
 });
 
 export class EmailService {
+
   async sendOTP(email: string, otp: string) {
     const mailOptions = {
       from: `"Hackfolio Support" <${process.env.SMTP_USER}>`,
@@ -40,11 +54,15 @@ export class EmailService {
     };
 
     try {
-      await transporter.sendMail(mailOptions);
-      Logger.info(`OTP sent to ${email}`);
+      const info = await transporter.sendMail(mailOptions);
+      Logger.info(`OTP sent successfully to ${email}. MessageId: ${info.messageId}`);
     } catch (error) {
       Logger.error(`Failed to send email to ${email}: ${error}`);
-      throw new BadRequestError('Failed to send OTP email. Please check your SMTP settings.');
+      if (error instanceof Error) {
+        Logger.error(`Error details: ${error.message}`);
+      }
+      throw new BadRequestError('Failed to send OTP email. Please ensure your email configuration is correct and try again later.');
     }
+
   }
 }
