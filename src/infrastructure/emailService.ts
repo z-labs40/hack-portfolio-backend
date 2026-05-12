@@ -1,5 +1,4 @@
 import nodemailer from 'nodemailer';
-import { config } from '../config';
 import { Logger } from '../shared/logger';
 import { BadRequestError } from '../shared/error';
 
@@ -7,20 +6,16 @@ const host = process.env.SMTP_HOST || 'smtp.gmail.com';
 const port = parseInt(process.env.SMTP_PORT || '587');
 
 const transporter = nodemailer.createTransport({
-  pool: true, // Use connection pooling
-  maxConnections: 5,
-  maxMessages: 100,
-  service: host.includes('gmail') ? 'gmail' : undefined,
-  host: !host.includes('gmail') ? host : undefined,
+  host: host,
   port: port,
-  secure: port === 465,
+  secure: port === 465, // true for 465 (SSL), false for 587 (STARTTLS)
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
   tls: {
-    rejectUnauthorized: false // Helps in some environments to avoid handshake delays
-  }
+    rejectUnauthorized: false,
+  },
 });
 
 
