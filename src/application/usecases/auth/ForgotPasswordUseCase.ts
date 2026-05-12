@@ -25,11 +25,7 @@ export class ForgotPasswordUseCase {
     // Store OTP in-memory instead of database
     OTPStore.setOTP(email, otp, expiry);
 
-    // Send OTP email in the background
-    this.emailService.sendOTP(email, otp).catch((error) => {
-      Logger.error(`Background OTP sending failed for ${email}: ${error}`);
-    });
-    
-    Logger.info(`Forgot password OTP request processed for ${email}`);
+    await this.emailService.sendOTP(email, otp);
+    Logger.info(`Forgot password OTP generated for ${email}`);
   }
 }

@@ -3,25 +3,21 @@ import { config } from '../config';
 import { Logger } from '../shared/logger';
 import { BadRequestError } from '../shared/error';
 
+const host = process.env.SMTP_HOST || 'smtp.gmail.com';
+const port = parseInt(process.env.SMTP_PORT || '587');
+
+const transporter = nodemailer.createTransport({
+  service: host.includes('gmail') ? 'gmail' : undefined,
+  host: !host.includes('gmail') ? host : undefined,
+  port: port,
+  secure: port === 465,
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
+
 export class EmailService {
-  private transporter;
-
-  constructor() {
-    const host = process.env.SMTP_HOST || 'smtp.gmail.com';
-    const port = parseInt(process.env.SMTP_PORT || '587');
-    
-    this.transporter = nodemailer.createTransport({
-      service: host.includes('gmail') ? 'gmail' : undefined,
-      host: !host.includes('gmail') ? host : undefined,
-      port: port,
-      secure: port === 465,
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    });
-  }
-
   async sendOTP(email: string, otp: string) {
     const mailOptions = {
       from: `"Hackfolio Support" <${process.env.SMTP_USER}>`,
@@ -41,7 +37,7 @@ export class EmailService {
     };
 
     try {
-      await this.transporter.sendMail(mailOptions);
+      await transporter.sendMail(mailOptions);
       Logger.info(`OTP sent to ${email}`);
     } catch (error) {
       Logger.error(`Failed to send email to ${email}: ${error}`);
