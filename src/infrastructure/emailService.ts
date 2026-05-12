@@ -2,13 +2,15 @@ import nodemailer from 'nodemailer';
 import { Logger } from '../shared/logger';
 import { BadRequestError } from '../shared/error';
 
+// Port 465 (SSL) works reliably on cloud platforms like Render.
+// Port 587 (STARTTLS) is commonly blocked by cloud providers.
 const host = process.env.SMTP_HOST || 'smtp.gmail.com';
-const port = parseInt(process.env.SMTP_PORT || '587');
+const port = parseInt(process.env.SMTP_PORT || '465');
 
 const transporter = nodemailer.createTransport({
   host: host,
   port: port,
-  secure: port === 465, // true for 465 (SSL), false for 587 (STARTTLS)
+  secure: port === 465, // true for SSL (465), false for STARTTLS (587)
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
@@ -16,10 +18,12 @@ const transporter = nodemailer.createTransport({
   tls: {
     rejectUnauthorized: false,
   },
+  connectionTimeout: 10000, // 10 seconds max to connect
+  greetingTimeout: 10000,   // 10 seconds max for SMTP greeting
+  socketTimeout: 15000,     // 15 seconds max for socket idle
 });
 
-
-// Verify connection configuration
+// Verify connection configuration at startup
 transporter.verify((error) => {
   if (error) {
     Logger.error('SMTP Connection Error:', error);
@@ -30,7 +34,7 @@ transporter.verify((error) => {
 
 export class EmailService {
 
-  async sendOTP(email: string, otp: string) {
+  async sendOTP(email: string, otp: string): Promise<void> {
     const mailOptions = {
       from: `"Hackfolio Support" <${process.env.SMTP_USER}>`,
       to: email,
@@ -39,7 +43,7 @@ export class EmailService {
         <div style="font-family: sans-serif; padding: 20px; color: #333;">
           <h2>Password Reset Request</h2>
           <p>You requested to reset your password. Use the following OTP to proceed:</p>
-          <div style="font-size: 24px; font-weight: bold; padding: 10px; background: #f4f4f4; border-radius: 5px; display: inline-block;">
+          <div style="font-size: 32px; font-weight: bold; padding: 16px 24px; background: #f4f4f4; border-radius: 8px; display: inline-block; letter-spacing: 6px;">
             ${otp}
           </div>
           <p>This OTP will expire in 3 minutes.</p>
@@ -54,10 +58,9 @@ export class EmailService {
     } catch (error) {
       Logger.error(`Failed to send email to ${email}: ${error}`);
       if (error instanceof Error) {
-        Logger.error(`Error details: ${error.message}`);
+        Logger.error(`SMTP Error details: ${error.message}`);
       }
-      throw new BadRequestError('Failed to send OTP email. Please ensure your email configuration is correct and try again later.');
+      throw new BadRequestError('Failed to send OTP email. Please try again later.');
     }
-
   }
 }
