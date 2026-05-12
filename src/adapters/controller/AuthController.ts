@@ -3,6 +3,9 @@ import { UserImpl } from '../repositories/UserImpl';
 import { AppDataSource } from '../../infrastructure/database';
 import { RegisterUseCase } from '../../application/usecases/auth/RegisterUseCase';
 import { LoginUseCase } from '../../application/usecases/auth/LoginUseCase';
+import { ForgotPasswordUseCase } from '../../application/usecases/auth/ForgotPasswordUseCase';
+import { VerifyOTPUseCase } from '../../application/usecases/auth/VerifyOTPUseCase';
+import { ResetPasswordUseCase } from '../../application/usecases/auth/ResetPasswordUseCase';
 import { GetUserByIdUseCase } from '../../application/usecases/users/GetUserByIdUseCase';
 import { UpdateProfileUseCase } from '../../application/usecases/users/UpdateProfileUseCase';
 import { DeleteUserUseCase } from '../../application/usecases/users/DeleteUserUseCase';
@@ -18,6 +21,9 @@ export class AuthController {
     this.userRepository = new UserImpl(AppDataSource);
     this.router.post('/register', this.registerHandler.bind(this));
     this.router.post('/login', this.loginHandler.bind(this));
+    this.router.post('/forgot-password', this.forgotPasswordHandler.bind(this));
+    this.router.post('/verify-otp', this.verifyOTPHandler.bind(this));
+    this.router.post('/reset-password', this.resetPasswordHandler.bind(this));
     
     // Integrated User CRUD routes
     this.router.get('/all-users', authMiddleware, this.listUsersHandler.bind(this));
@@ -110,6 +116,52 @@ export class AuthController {
         ok: true,
         data: result,
       } as SuccessResponse<typeof result>);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async forgotPasswordHandler(req: Request, res: Response, next: any) {
+    try {
+      const { email } = req.body;
+      const usecase = new ForgotPasswordUseCase(this.userRepository);
+      await usecase.execute(email);
+
+      res.status(200).json({
+        ok: true,
+        message: 'OTP sent to your email',
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async verifyOTPHandler(req: Request, res: Response, next: any) {
+    try {
+      const { email, otp } = req.body;
+      const usecase = new VerifyOTPUseCase(this.userRepository);
+      const isValid = await usecase.execute(email, otp);
+
+      res.status(200).json({
+        ok: true,
+        data: { isValid },
+        message: 'OTP verified successfully',
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async resetPasswordHandler(req: Request, res: Response, next: any) {
+    try {
+      const { email, otp, password } = req.body;
+      const usecase = new ResetPasswordUseCase(this.userRepository);
+      await usecase.execute(email, otp, password);
+
+      res.status(200).json({
+        ok: true,
+        message: 'Password reset successful',
+      });
     } catch (error) {
       next(error);
     }

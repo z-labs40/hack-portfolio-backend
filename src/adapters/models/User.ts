@@ -34,6 +34,12 @@ export class User {
   @OneToMany(() => Project, (project) => project.owner)
   projects!: Project[];
 
+  @Column({ nullable: true })
+  resetPasswordOTP?: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  resetPasswordExpires?: Date;
+
   async comparePassword(plain: string): Promise<boolean> {
     return bcrypt.compare(plain, this.password);
   }
