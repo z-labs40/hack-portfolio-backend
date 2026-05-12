@@ -29,7 +29,11 @@ export class ForgotPasswordUseCase {
       resetPasswordExpires: expiry
     });
 
-    await this.emailService.sendOTP(email, otp);
-    Logger.info(`Forgot password OTP generated for ${email}`);
+    // Send OTP email in the background
+    this.emailService.sendOTP(email, otp).catch((error) => {
+      Logger.error(`Background OTP sending failed for ${email}: ${error}`);
+    });
+    
+    Logger.info(`Forgot password OTP request processed for ${email}`);
   }
 }
