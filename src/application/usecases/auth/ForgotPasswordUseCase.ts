@@ -2,6 +2,7 @@ import { IUserRepository } from '../../interfaces/IUserRepository';
 import { EmailService } from '../../../infrastructure/emailService';
 import { Logger } from '../../../shared/logger';
 import { NotFoundError } from '../../../shared/error';
+import { OTPStore } from '../../../shared/OTPStore';
 
 export class ForgotPasswordUseCase {
   private emailService: EmailService;
@@ -21,19 +22,10 @@ export class ForgotPasswordUseCase {
     const expiry = new Date();
     expiry.setMinutes(expiry.getMinutes() + 3); // 3 minutes expiry
 
-    user.resetPasswordOTP = otp;
-    user.resetPasswordExpires = expiry;
+    // Store OTP in-memory instead of database
+    OTPStore.setOTP(email, otp, expiry);
 
-    await this.userRepository.update(user.id, {
-      resetPasswordOTP: otp,
-      resetPasswordExpires: expiry
-    });
-
-    // Send OTP email in the background
-    this.emailService.sendOTP(email, otp).catch((error) => {
-      Logger.error(`Background OTP sending failed for ${email}: ${error}`);
-    });
-    
-    Logger.info(`Forgot password OTP request processed for ${email}`);
+    await this.emailService.sendOTP(email, otp);
+    Logger.info(`Forgot password OTP generated for ${email}`);
   }
 }

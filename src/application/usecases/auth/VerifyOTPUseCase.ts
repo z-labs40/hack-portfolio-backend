@@ -1,4 +1,5 @@
 import { IUserRepository } from '../../interfaces/IUserRepository';
+import { OTPStore } from '../../../shared/OTPStore';
 
 export class VerifyOTPUseCase {
   constructor(private userRepository: IUserRepository) {}
@@ -10,16 +11,14 @@ export class VerifyOTPUseCase {
       throw new Error('User not found');
     }
 
-    if (!user.resetPasswordOTP || !user.resetPasswordExpires) {
-      throw new Error('No OTP requested');
-    }
-
-    if (user.resetPasswordOTP !== otp) {
-      throw new Error('Invalid OTP');
-    }
-
-    if (new Date() > user.resetPasswordExpires) {
-      throw new Error('OTP Expired');
+    const isValid = OTPStore.verifyOTP(email, otp);
+    
+    if (!isValid) {
+      const data = OTPStore.getOTPData(email);
+      if (!data) throw new Error('No OTP requested');
+      if (data.otp !== otp) throw new Error('Invalid OTP');
+      if (new Date() > data.expires) throw new Error('OTP Expired');
+      throw new Error('Invalid or expired OTP');
     }
 
     return true;
