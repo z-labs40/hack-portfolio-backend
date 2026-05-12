@@ -52,6 +52,7 @@ app.use(
       const allowedOrigins = [
         config.frontendUrl.replace(/\/$/, ''),
         'https://hackathon-portfolio-webapp.web.app',
+        'https://hackathon-portfolio-webapp.firebaseapp.com',
         'http://localhost:5173',
         'http://localhost:3000',
         'http://127.0.0.1:5173',
